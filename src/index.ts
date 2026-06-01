@@ -8,6 +8,8 @@ import userRoutes from "./routes/userRoutes";
 import restauranteRoutes from "./routes/restauranteRoutes";
 import morgan from "morgan";
 import {v2 as cloudinary} from "cloudinary";
+//Importamos la ruta para ordenes
+import orderRoutes from './routes/orderRoutes'
 
 const cloudName=process.env.CLOUDINARY_CLOUD_NAME || "";
 const apiKey=process.env.CLOUDINARY_API_KEY || "";
@@ -33,10 +35,12 @@ mongoose.connect(process.env.DB_CONNECTION_STRING as string)
 });
 
 const app = express();
-app.use(express.json());
+//Middleware para recibir notificaciones de pago mediante Stripe
 app.use(cors());
 app.use(morgan("dev"));
-
+app.use('/api/order/checkout/webhook', express.raw({type:"*/*"}))
+app.use(express.json());
+app.use('/api/order/', orderRoutes);
 app.get("/health", async(req:Request, res:Response)=>{
     res.send({message: "!Servidor Ok!"});
 })

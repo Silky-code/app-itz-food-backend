@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import {createRestaurante, getRestaurante, updateRestaurante, searchRestaurante} from "../controllers/restauranteController";
+import {createRestaurante, getRestaurante, updateRestaurante, searchRestaurante, getRestauranteById} from "../controllers/restauranteController";
 import { jwtCheck, jwtParse } from "../middleware/auth";
 import { validateRestauranteRequest } from "../middleware/validation";
 import { param } from 'express-validator'
@@ -46,6 +46,14 @@ router.get('/search/:city',
     param("city").isString().trim().notEmpty()
         .withMessage("el parametro de la ciudad debe ser un string valido"),
     searchRestaurante
+);
+
+router.get("/:restaurantId",
+    param("restaurantId").isString()
+                        .trim()
+                        .notEmpty()
+                        .withMessage("El parametro Id del restaurante debe ser un string valido"),
+    getRestauranteById
 );
 
 

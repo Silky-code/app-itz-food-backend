@@ -1,18 +1,26 @@
-import moongose from "mongoose";
+import  mongoose, { InferSchemaType } from "mongoose";
 
-const menuItemSchema = new moongose.Schema({
-    name:{
-        type: String,
-        require: true
+
+const menuItemSchema = new mongoose.Schema({
+    _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        default: () => new mongoose.Types.ObjectId()
     },
-    price:{
+    name: {
+        type: String,
+        required: true
+    },
+    price: {
         type: Number,
-        require: true
+        required: true
     }
 })
 
-const restauranteSchema = new moongose.Schema({
-    user: { type: moongose.Schema.Types.ObjectId, ref: "User" },
+export type MenuItemType = InferSchemaType<typeof menuItemSchema>;
+
+const restauranteSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     restauranteName: { type: String, require: true },
     city: {type: String, require: true},
     country:{type: String, require: true},
@@ -25,4 +33,4 @@ const restauranteSchema = new moongose.Schema({
     
 })
 
-export default moongose.model("Restaurante", restauranteSchema)
+export default mongoose.model("Restaurante", restauranteSchema)
