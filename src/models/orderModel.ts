@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-    restaurante: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+    restaurant: { type: Schema.Types.ObjectId, ref: 'Restaurante', required: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     deliveryDetails: {
         email: { type: String, required: true},
@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema({
     totalAmount: {type: Number},
     status: {
         type: String,
-        enum: ["placed", "paid", "inProgress", "outForDelivevy", "delivered"]
+        enum: ["placed", "paid", "inProgress", "outForDelivery", "delivered"]
     },
     createdAt: {type: Date, default: Date.now}
 });
