@@ -1,7 +1,8 @@
-import type { Request, Response } from "express";
+import { Request, Response } from "express";
 import Stripe from 'stripe';
 import Restaurante, { MenuItemType } from '../models/restauranteModel';
 import Order from '../models/orderModel';
+
 
 const STRIPE = new Stripe(process.env.STRIPE_API_KEY as string);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
@@ -40,7 +41,7 @@ const createLineItems = (checkOutSessionRequest: CheckOutSessionRequest,
         const lineItem = {
             price_data: {
                 currency: "mxn",
-                unit_amount: parseFloat(menuItem.price.toString()) * 10,
+                unit_amount: menuItem.price * 100,
                 product_data: {
                     name: menuItem.name,
                 }
@@ -66,7 +67,7 @@ const createStripeSession = async (
                         display_name: "Delivery",
                         type: "fixed_amount",
                         fixed_amount: {
-                            amount: deliveryPrice,
+                            amount: deliveryPrice * 100,
                             currency: "mxn"
                         }
                     }
@@ -95,14 +96,14 @@ export const createCheckOutSession = async (req: Request, res: Response): Promis
 
     // Creamos la nueva orden en Mongo
     const newOrder = new Order({
-        restaurantId: checkOutSessionRequest.restaurantId,
-        userId: req.userId,
-        deliveryDetails: checkOutSessionRequest.deliveryDetails,
-        cartItems: checkOutSessionRequest.cartItems,
-        totalAmount: 0,
-        status: "placed",
-        createdAt: new Date(),
-    });
+  restaurant: checkOutSessionRequest.restaurantId,
+  user: req.userId,
+  deliveryDetails: checkOutSessionRequest.deliveryDetails,
+  cartItems: checkOutSessionRequest.cartItems,
+  totalAmount: 0,
+  status: "placed",
+  createdAt: new Date(),
+});
 
     const lineItems = createLineItems(checkOutSessionRequest, restaurante.menuItems);
 
@@ -132,8 +133,8 @@ export const createCheckOutSession = async (req: Request, res: Response): Promis
         .json({ message: error.raw.message });
 }
 };//Fin de createCheckOutSession
-export const stripeWebHookHandler = async (req: Request, res: Response):Promise<any>=>{
-    let event;
+export async function stripeWebHookHandler(req: Request, res: Response): Promise<any> {
+    let event: any;
 
     try {
         const sig = req.headers["stripe-signature"];
@@ -161,4 +162,54 @@ export const stripeWebHookHandler = async (req: Request, res: Response):Promise<
     }
 
     res.status(200).send();
-}; //Fin de stripeWebHookHandler
+} //Fin de stripeWebHookHandler
+
+export const getOrders = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const orders = await Order.find({ user: req.userId })
+      .populate("restaurant")
+      .populate("user");
+    res.json(orders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error al obtener las ordenes" });
+  }
+};
+export const getRestaurantOrders = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const restaurant = await Restaurante.findOne({ user: req.userId });
+    if (!restaurant) {
+      return res.status(400).json({ message: 'Restaurante no encontrado' });
+    }
+    const orders = await Order.find({ restaurant: restaurant._id })
+      .populate("restaurant")
+      .populate("user");
+    res.json(orders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Error al obtener las ordenes para un restaurante' });
+  }
+};
+export const updateOrderStatus = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Orden no encontrada" });
+    }
+
+    const restaurant = await Restaurante.findById(order.restaurante._id);
+    if (restaurant?._id.toString() !== order.restaurante?._id.toString()) {
+      return res.status(401).json({ message: "El restaurante no corresponde al especificado en la orden" });
+    }
+
+    order.status = status;
+    await order.save();
+    res.status(200).json(order);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error al actualizar el status de una orden" });
+  }
+};
