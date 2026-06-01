@@ -1,8 +1,9 @@
 import express from "express";
 import multer from "multer";
-import {createRestaurante, getRestaurante, updateRestaurante} from "../controllers/restauranteController";
+import {createRestaurante, getRestaurante, updateRestaurante, searchRestaurante} from "../controllers/restauranteController";
 import { jwtCheck, jwtParse } from "../middleware/auth";
 import { validateRestauranteRequest } from "../middleware/validation";
+import { param } from 'express-validator'
 
 const router = express.Router();
 
@@ -37,6 +38,16 @@ router.put('/',
     upload.single("imageFile"),
     validateRestauranteRequest,
     updateRestaurante
-)
+);
+
+//ruta pra uscar los datos de un restaurante 
+// ✅ Primero las rutas específicas
+router.get('/search/:city',
+    param("city").isString().trim().notEmpty()
+        .withMessage("el parametro de la ciudad debe ser un string valido"),
+    searchRestaurante
+);
+
+
 
 export default router;
