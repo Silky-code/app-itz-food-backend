@@ -21,15 +21,15 @@ export type MenuItemType = InferSchemaType<typeof menuItemSchema>;
 
 const restauranteSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    restauranteName: { type: String, require: true },
-    city: {type: String, require: true},
-    country:{type: String, require: true},
-    deliveryPrice: {type: Number, require:true},
-    estimatedDeliveryTime: {type: Number, require: true},
-    cuisines: [{type: String, require:true}],
+    restauranteName: { type: String, required: true },
+    city: {type: String, required: true},
+    country:{type: String, required: true},
+    deliveryPrice: {type: Number, required: true},
+    estimatedDeliveryTime: {type: Number, required: true},
+    cuisines: [{type: String, required: true}],
     menuItems: [menuItemSchema],
-    imageUrl: {type: String, require: true},
-    lastUpdated: {type: Date, require:true},
+    imageUrl: {type: String, required: true},
+    lastUpdated: {type: Date, required: true},
     
 })
 

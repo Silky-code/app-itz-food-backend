@@ -1,27 +1,37 @@
-import express from 'express';
-import { jwtCheck, jwtParse } from '../middleware/auth';
-import { createCheckOutSession, getOrders, stripeWebHookHandler, getRestaurantOrders, updateOrderStatus } from '../controllers/orderController';
+import express from "express";
+import { jwtCheck, jwtParse } from "../middleware/auth";
+import OrderController from "../controllers/orderController";
 
 const router = express.Router();
 
-// Ruta para obtener órdenes del cliente
-router.get('/', jwtCheck, jwtParse, getOrders);
+// ✅ NUEVO 4.4: Obtener órdenes del cliente
+router.get("/", jwtCheck, jwtParse, OrderController.getOrders);
 
-// Ruta para obtener órdenes del restaurante
-router.get('/order', jwtCheck, jwtParse, getRestaurantOrders);
-
-// Ruta para actualizar parcialmente el estatus (PATCH)
-router.patch('/:orderId/status', jwtCheck, jwtParse, updateOrderStatus);
-
-//Ruta para procesar las peticiones del WebHook de stripe
-router.post('/checkout/webhook', stripeWebHookHandler);
-
-//ruta post para crear una sesión de stripe
-router.post(
-    '/checkout/create-checkout-session',
-    jwtCheck,
-    jwtParse,
-    createCheckOutSession
+// ✅ NUEVO 4.4: Obtener órdenes del restaurante
+router.get(
+  "/restaurant-orders",
+  jwtCheck,
+  jwtParse,
+  OrderController.getRestaurantOrders
 );
+
+// ✅ NUEVO 4.4: Actualizar status de una orden (PATCH = actualización parcial)
+router.patch(
+  "/:orderId/status",
+  jwtCheck,
+  jwtParse,
+  OrderController.updateOrderStatus
+);
+
+// Crear sesión de pago
+router.post(
+  "/checkout/create-checkout-session",
+  jwtCheck,
+  jwtParse,
+  OrderController.createCheckOutSession
+);
+
+// Webhook de Stripe
+router.post("/checkout/webhook", OrderController.stripeWebhookHandler);
 
 export default router;
